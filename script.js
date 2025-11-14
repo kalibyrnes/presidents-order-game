@@ -4,7 +4,7 @@ const PRESIDENTS = [
   ["thomas jefferson", "jefferson"],
   ["james madison", "madison"],
   ["james monroe", "monroe"],
-  ["john quincy adams", "adams"],
+  ["john quincy adams", "adams", "quincy adams"],
   ["andrew jackson", "jackson"],
   ["martin van buren", "van buren", "vanburen"],
   ["william henry harrison", "harrison"],
@@ -60,17 +60,11 @@ function startGame() {
   input.disabled = false;
   input.value = "";
   input.focus();
-  updateStatus();
-  updateProgress();
+  status.innerText = `Type President #1`;
+  progress.innerText = `Progress: 0 / ${PRESIDENTS.length}`;
 }
 
-function updateStatus() {
-  status.innerText = `Type President #${index + 1}`;
-}
-
-function updateProgress() {
-  progress.innerText = `Progress: ${index} / ${PRESIDENTS.length}`;
-}
+startBtn.addEventListener("click", startGame);
 
 input.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
@@ -78,17 +72,15 @@ input.addEventListener("keydown", (e) => {
     if (PRESIDENTS[index].includes(answer)) {
       index++;
       input.value = "";
-      updateProgress();
+      progress.innerText = `Progress: ${index} / ${PRESIDENTS.length}`;
       if (index === PRESIDENTS.length) {
         status.innerText = "🎉 Finished! You typed all presidents in order!";
         input.disabled = true;
       } else {
-        updateStatus();
+        status.innerText = `Correct — now type President #${index + 1}`;
       }
     } else {
       status.innerText = `❌ Incorrect — try again for #${index + 1}`;
     }
   }
 });
-
-startBtn.addEventListener("click", startGame);
