@@ -1,29 +1,29 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>US Presidents Typing Game</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presidents in Order Game</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="main-container">
-    <h1>US Presidents in Order</h1>
-    <p>Type each president in chronological order. Last or full names accepted. You have 10 minutes.</p>
+  <h1>Presidents in Order</h1>
 
-    <div class="top-bar">
-      <button id="startBtn" class="btn">Start</button>
-      <div id="timer">10:00</div>
-      <div id="progress">0 / 46</div>
-    </div>
-
-    <div id="status" class="status">Press Start to begin.</div>
-
-    <div id="list" class="list-container"></div>
+  <div class="top-bar">
+    <button id="startBtn" class="btn">Start</button>
+    <button id="pauseBtn" class="btn" style="display:none;">Pause</button>
+    <div class="timer" id="timer">10:00</div>
   </div>
 
-  <!-- Confetti Library -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <div class="status" id="status">Score: 0 / 47</div>
+
+  <div class="list-container" id="listContainer">
+    <!-- Presidents list will be populated here -->
+  </div>
+
+  <!-- Sparkles / confetti container -->
+  <div id="effects"></div>
+
   <script src="script.js"></script>
 </body>
 </html>
