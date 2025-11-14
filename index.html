@@ -3,31 +3,23 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Presidents Order Game</title>
+  <title>Presidents Typing Game</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main class="container">
-    <h1>Presidents — Put them in exact order</h1>
-    <p class="instructions">
-      Click the presidents in chronological order (first → last). Start with #1 (George Washington).
-    </p>
+    <h1>Type the U.S. Presidents in Order</h1>
+    <p>Type the presidents in chronological order. Last names or full names both accepted.</p>
 
-    <div id="status" class="status">Ready — click Start to play.</div>
+    <div id="status" class="status">Press Start to begin.</div>
 
     <div class="controls">
       <button id="startBtn">Start</button>
-      <button id="shuffleBtn">Shuffle</button>
-      <button id="revealBtn">Reveal Answer</button>
     </div>
 
-    <section id="board" class="board" aria-live="polite"></section>
+    <input id="answerInput" class="input" type="text" placeholder="Type here..." disabled />
 
-    <div id="progress" class="progress"></div>
-
-    <footer class="footer">
-      <small>Presidents list derived from public lists (Wikipedia, WhiteHouse timeline).</small>
-    </footer>
+    <div id="progress" class="progress">Progress: 0 / 46</div>
   </main>
 
   <script src="script.js"></script>
