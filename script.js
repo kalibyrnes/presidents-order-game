@@ -50,11 +50,13 @@ const PRESIDENTS = [
 
 let solved = 0;
 let timerInterval;
+let time = 600; // 10 minutes
+let paused = false;
 
 const list = document.getElementById("list");
 const progress = document.getElementById("progress");
 const status = document.getElementById("status");
-const timer = document.getElementById("timer");
+const timerEl = document.getElementById("timer");
 const startBtn = document.getElementById("startBtn");
 
 // Render input boxes
@@ -66,11 +68,9 @@ function renderList() {
 
     const num = document.createElement("span");
     num.textContent = `${i+1}.`;
-    num.className = "number";
 
     const terms = document.createElement("span");
     terms.textContent = p.terms;
-    terms.className = "terms";
 
     const input = document.createElement("input");
     input.type = "text";
@@ -78,28 +78,38 @@ function renderList() {
     input.id = `i${i}`;
     input.disabled = true;
 
+    // Show already solved answers if restarting
+    if (i < solved) {
+      input.value = PRESIDENTS[i].name;
+      input.classList.add("correct");
+      input.disabled = true;
+    }
+
     row.appendChild(num);
     row.appendChild(terms);
     row.appendChild(input);
     list.appendChild(row);
   });
+
+  const nextInput = document.getElementById(`i${solved}`);
+  if (nextInput) nextInput.disabled = false;
+  if (nextInput) nextInput.focus();
 }
 
 // Start Timer
 function startTimer() {
-  let time = 600; // 10 minutes
-  timer.textContent = "10:00";
+  clearInterval(timerInterval);
+  timerEl.textContent = `${Math.floor(time/60)}:${(time%60).toString().padStart(2,"0")}`;
 
   timerInterval = setInterval(() => {
-    time--;
-    const m = Math.floor(time / 60);
-    const s = time % 60;
-    timer.textContent = `${m}:${s.toString().padStart(2,"0")}`;
-
-    if (time <= 0) {
-      clearInterval(timerInterval);
-      status.textContent = "Time's up!";
-      document.querySelectorAll(".answerBox").forEach(input => input.disabled = true);
+    if (!paused) {
+      time--;
+      timerEl.textContent = `${Math.floor(time/60)}:${(time%60).toString().padStart(2,"0")}`;
+      if (time <= 0) {
+        clearInterval(timerInterval);
+        status.textContent = "Time's up!";
+        document.querySelectorAll(".answerBox").forEach(input => input.disabled = true);
+      }
     }
   }, 1000);
 }
@@ -115,10 +125,7 @@ function celebrate() {
       startVelocity: 30,
       spread: 360,
       ticks: 60,
-      origin: {
-        x: Math.random(),
-        y: Math.random() - 0.2
-      }
+      origin: { x: Math.random(), y: Math.random() - 0.2 }
     });
     if (Date.now() < end) requestAnimationFrame(frame);
   })();
@@ -127,14 +134,18 @@ function celebrate() {
 // Start Game
 function startGame() {
   solved = 0;
+  time = 600;
+  paused = false;
   renderList();
   status.textContent = "Game started — type President #1";
   progress.textContent = `0 / ${PRESIDENTS.length}`;
   startTimer();
+}
 
-  const first = document.getElementById("i0");
-  first.disabled = false;
-  first.focus();
+// Pause / Resume
+function togglePause() {
+  paused = !paused;
+  startBtn.textContent = paused ? "Resume" : "Pause";
 }
 
 // Handle input
@@ -163,8 +174,11 @@ list.addEventListener("keydown", (e) => {
       next.focus();
     }
   } else {
-    e.target.classList.add("incorrect");
-    setTimeout(() => e.target.classList.remove("incorrect"), 500);
+    // Restart current game but keep correct ones
+    status.textContent = "Wrong answer! Restarting from first unsolved...";
+    setTimeout(() => {
+      renderList();
+    }, 500);
   }
 });
 
@@ -181,6 +195,7 @@ function createSparkles() {
 }
 createSparkles();
 
+// Add Pause / Resume button next to start
 startBtn.addEventListener("click", startGame);
-
-
+startBtn.insertAdjacentHTML("afterend", '<button id="pauseBtn" class="btn">Pause</button>');
+document.getElementById("pauseBtn").addEventListener("click", togglePause);
