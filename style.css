@@ -79,6 +79,29 @@ h1 {
   box-shadow: 0 2px 6px rgba(168, 50, 110, 0.2);
 }
 
+/* RESPONSIVE BREAKPOINTS */
+
+/* Phones: force 1 column */
+@media (max-width: 600px) {
+  .list-container {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Tablets: 2 columns */
+@media (min-width: 601px) and (max-width: 1000px) {
+  .list-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Large screens: up to 3 columns */
+@media (min-width: 1001px) {
+  .list-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 
 .answerBox {
   padding: 6px 10px;
