@@ -1,3 +1,5 @@
+// script.js - End-on-wrong version
+
 const PRESIDENTS = [
   { name: "George Washington", terms: "1789–1797", answers: ["washington"] },
   { name: "John Adams", terms: "1797–1801", answers: ["adams"] },
@@ -49,9 +51,10 @@ const PRESIDENTS = [
 ];
 
 let solved = 0;
-let timerInterval;
-let time = 600; // 10 minutes
+let timerInterval = null;
+let timeLeft = 600; // seconds
 let paused = false;
+let gameOver = false;
 
 const list = document.getElementById("list");
 const progress = document.getElementById("progress");
@@ -59,7 +62,7 @@ const status = document.getElementById("status");
 const timerEl = document.getElementById("timer");
 const startBtn = document.getElementById("startBtn");
 
-// Render input boxes
+// render list with inputs; show solved answers only
 function renderList() {
   list.innerHTML = "";
   PRESIDENTS.forEach((p, i) => {
@@ -68,9 +71,11 @@ function renderList() {
 
     const num = document.createElement("span");
     num.textContent = `${i+1}.`;
+    num.className = "number";
 
     const terms = document.createElement("span");
     terms.textContent = p.terms;
+    terms.className = "terms";
 
     const input = document.createElement("input");
     input.type = "text";
@@ -78,7 +83,7 @@ function renderList() {
     input.id = `i${i}`;
     input.disabled = true;
 
-    // Show already solved answers if restarting
+    // if this index is already solved, show the name
     if (i < solved) {
       input.value = PRESIDENTS[i].name;
       input.classList.add("correct");
@@ -91,30 +96,86 @@ function renderList() {
     list.appendChild(row);
   });
 
-  const nextInput = document.getElementById(`i${solved}`);
-  if (nextInput) nextInput.disabled = false;
-  if (nextInput) nextInput.focus();
+  // enable next unsolved input (if game not over)
+  if (!gameOver) {
+    const next = document.getElementById(`i${solved}`);
+    if (next) next.disabled = false, next.focus();
+  }
 }
 
-// Start Timer
+// start / restart game
+function startGame() {
+  // reset state
+  solved = 0;
+  timeLeft = 600;
+  paused = false;
+  gameOver = false;
+
+  // UI
+  startBtn.textContent = "Pause"; // default becomes pause after start
+  status.textContent = "Game started — type the first president";
+  progress.textContent = `0 / ${PRESIDENTS.length}`;
+  renderList();
+  startTimer();
+}
+
+// timer management
 function startTimer() {
-  clearInterval(timerInterval);
-  timerEl.textContent = `${Math.floor(time/60)}:${(time%60).toString().padStart(2,"0")}`;
+  // clear any existing interval
+  if (timerInterval) clearInterval(timerInterval);
+
+  // show initial time
+  timerEl.textContent = formatTime(timeLeft);
 
   timerInterval = setInterval(() => {
-    if (!paused) {
-      time--;
-      timerEl.textContent = `${Math.floor(time/60)}:${(time%60).toString().padStart(2,"0")}`;
-      if (time <= 0) {
-        clearInterval(timerInterval);
-        status.textContent = "Time's up!";
-        document.querySelectorAll(".answerBox").forEach(input => input.disabled = true);
-      }
+    if (paused || gameOver) return;
+    timeLeft--;
+    timerEl.textContent = formatTime(timeLeft);
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      endGame("Time's up!");
     }
   }, 1000);
 }
 
-// Confetti celebration
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+// pause / resume toggling
+function togglePause() {
+  if (gameOver) return;
+  paused = !paused;
+  const pauseBtn = document.getElementById("pauseBtn");
+  pauseBtn.textContent = paused ? "Resume" : "Pause";
+  status.textContent = paused ? "Paused" : `Resumed — type President #${solved + 1}`;
+}
+
+// end game (called on wrong answer or timer)
+function endGame(message) {
+  gameOver = true;
+  clearInterval(timerInterval);
+  // disable all inputs
+  document.querySelectorAll(".answerBox").forEach(b => b.disabled = true);
+  status.textContent = `${message} — game over. Press Start to try again.`;
+  const pauseBtn = document.getElementById("pauseBtn");
+  if (pauseBtn) pauseBtn.disabled = true;
+}
+
+// when user finishes all correctly
+function winGame() {
+  clearInterval(timerInterval);
+  gameOver = true;
+  status.textContent = "You completed all presidents!";
+  celebrate();
+  const pauseBtn = document.getElementById("pauseBtn");
+  if (pauseBtn) pauseBtn.disabled = true;
+}
+
+// confetti
 function celebrate() {
   const duration = 3000;
   const end = Date.now() + duration;
@@ -131,58 +192,48 @@ function celebrate() {
   })();
 }
 
-// Start Game
-function startGame() {
-  solved = 0;
-  time = 600;
-  paused = false;
-  renderList();
-  status.textContent = "Game started — type President #1";
-  progress.textContent = `0 / ${PRESIDENTS.length}`;
-  startTimer();
-}
-
-// Pause / Resume
-function togglePause() {
-  paused = !paused;
-  startBtn.textContent = paused ? "Resume" : "Pause";
-}
-
-// Handle input
+// input handling: Enter submits; first wrong answer ends the game
 list.addEventListener("keydown", (e) => {
+  if (gameOver || paused) return;
   if (e.key !== "Enter") return;
 
-  const id = parseInt(e.target.id.substring(1));
-  const text = e.target.value.trim().toLowerCase();
+  const el = e.target;
+  if (!el || !el.id || !el.id.startsWith("i")) return;
+
+  const id = parseInt(el.id.substring(1), 10);
+  const text = el.value.trim().toLowerCase();
+
+  // safety: if user somehow typed in a future box, ignore
+  if (id !== solved) return;
 
   if (PRESIDENTS[id].answers.includes(text)) {
-    e.target.value = PRESIDENTS[id].name;
-    e.target.classList.add("correct");
-    e.target.disabled = true;
+    // correct
+    el.value = PRESIDENTS[id].name;
+    el.classList.add("correct");
+    el.disabled = true;
 
     solved++;
     progress.textContent = `${solved} / ${PRESIDENTS.length}`;
     status.textContent = "Correct";
 
     if (solved === PRESIDENTS.length) {
-      clearInterval(timerInterval);
-      status.textContent = "You completed all presidents!";
-      celebrate();
+      winGame();
     } else {
+      // enable next one
       const next = document.getElementById(`i${id + 1}`);
-      next.disabled = false;
-      next.focus();
+      if (next) next.disabled = false, next.focus();
     }
   } else {
-    // Restart current game but keep correct ones
-    status.textContent = "Wrong answer! Restarting from first unsolved...";
+    // WRONG -> immediate game over
+    el.classList.add("incorrect");
+    // show the wrong briefly (optional) then end
     setTimeout(() => {
-      renderList();
-    }, 500);
+      endGame("Wrong answer");
+    }, 200);
   }
 });
 
-// Sparkles
+// sparkles generator (background)
 function createSparkles() {
   setInterval(() => {
     const sparkle = document.createElement("div");
@@ -195,12 +246,31 @@ function createSparkles() {
 }
 createSparkles();
 
-// Add Pause / Resume button next to start
-startBtn.addEventListener("click", startGame);
-startBtn.insertAdjacentHTML("afterend", '<button id="pauseBtn" class="btn">Pause</button>');
-document.getElementById("pauseBtn").addEventListener("click", togglePause);
-// Initial display before Start
-renderList();  // Render all input boxes (disabled)
+// Add Pause button next to Start (only once)
+(function addPauseBtn() {
+  // if already added, skip
+  if (document.getElementById("pauseBtn")) return;
+  startBtn.insertAdjacentHTML("afterend", '<button id="pauseBtn" class="btn">Pause</button>');
+  const pauseBtn = document.getElementById("pauseBtn");
+  pauseBtn.addEventListener("click", togglePause);
+})();
+
+// initial render + initial labels (before start)
+renderList();
 progress.textContent = `0 / ${PRESIDENTS.length}`;
 status.textContent = `Press Start to begin. Total Presidents: ${PRESIDENTS.length}`;
 
+// Start button wiring
+startBtn.addEventListener("click", () => {
+  // if the game is currently running (start button text = "Pause"), treat click as Pause toggle
+  const pauseBtn = document.getElementById("pauseBtn");
+  // If game is not started or is over, start a new game
+  if (gameOver || timerInterval === null || timeLeft === 600 && solved === 0) {
+    // reset pause button state
+    if (pauseBtn) pauseBtn.disabled = false, pauseBtn.textContent = "Pause";
+    startGame();
+  } else {
+    // if game running, clicking Start will toggle Pause (for UX consistency)
+    togglePause();
+  }
+});
