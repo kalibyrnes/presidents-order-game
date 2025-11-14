@@ -199,3 +199,8 @@ createSparkles();
 startBtn.addEventListener("click", startGame);
 startBtn.insertAdjacentHTML("afterend", '<button id="pauseBtn" class="btn">Pause</button>');
 document.getElementById("pauseBtn").addEventListener("click", togglePause);
+// Initial display before Start
+renderList();  // Render all input boxes (disabled)
+progress.textContent = `0 / ${PRESIDENTS.length}`;
+status.textContent = `Press Start to begin. Total Presidents: ${PRESIDENTS.length}`;
+
