@@ -7,6 +7,7 @@ body {
   color: #b30071;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
 h1 {
@@ -16,55 +17,107 @@ h1 {
   color: #ff007f;
 }
 
-#timer {
-  font-size: 2rem;
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px auto;
+  font-size: 20px;
+  width: 80%;
+}
+
+.timer {
+  font-size: 28px;
   font-weight: 600;
   background: white;
   color: #ff007f;
   padding: 10px 25px;
   border-radius: 40px;
-  display: inline-block;
-  margin: 15px 0;
   box-shadow: 0 0 10px rgba(255, 0, 132, 0.4);
 }
 
-#inputBox {
-  width: 60%;
-  padding: 18px;
-  font-size: 1.3rem;
+.btn {
+  padding: 10px 18px;
+  font-size: 18px;
+  border: none;
+  border-radius: 12px;
+  background: #ff66b3;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.btn:hover {
+  background: #ff007f;
+}
+
+.status {
+  font-size: 18px;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.list-container {
+  margin-top: 20px;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 40px 140px 1fr;
+  gap: 15px;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 18px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 12px;
+  margin-bottom: 6px;
+  padding: 10px 12px;
+  box-shadow: 0 3px 8px rgba(255, 0, 132, 0.2);
+}
+
+.answerBox {
+  padding: 6px 10px;
+  font-size: 17px;
   border-radius: 12px;
   border: 2px solid #ff5fa2;
   outline: none;
-  margin-bottom: 20px;
-  background: white;
 }
 
-#inputBox:focus {
+.answerBox:focus {
   border-color: #ff007f;
-  box-shadow: 0 0 8px rgba(255, 0, 132, 0.6);
+  box-shadow: 0 0 6px rgba(255,0,132,0.6);
 }
 
-#presidentsList {
-  width: 80%;
-  margin: auto;
-  margin-top: 20px;
-}
-
-.president {
-  background: white;
-  padding: 12px 16px;
-  margin: 6px 0;
-  border-radius: 12px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 1.1rem;
-  box-shadow: 0 3px 8px rgba(255, 0, 132, 0.2);
-  color: #b30071;
-}
-
-.correct {
+.answerBox.correct {
   background: #ffb3d9;
   font-weight: 600;
   transform: scale(1.03);
   transition: all 0.3s ease-in-out;
+}
+
+.answerBox.incorrect {
+  background: #ffc6c6;
+  border-color: #ff0000;
+  transition: 0.3s;
+}
+
+/* Sparkle effect */
+.sparkle {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  animation: sparkleMove 6s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes sparkleMove {
+  from { transform: translateY(110vh); opacity: 1; }
+  to   { transform: translateY(-10vh); opacity: 0; }
 }
