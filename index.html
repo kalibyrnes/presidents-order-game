@@ -2,27 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Presidents Typing Game</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>U.S. Presidents Typing Game 💖</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="container">
-    <h1>U.S. Presidents – Type in Order</h1>
-    <p>Type last names or full names. You have 10 minutes.</p>
+  <div class="main-container">
+    <h1>US Presidents in Order 💖</h1>
+    <p>Type each president in chronological order. Last or full names accepted. You have 10 minutes!</p>
 
-    <div id="timer" class="timer">10:00</div>
-
-    <button id="startBtn">Start</button>
-
-    <input id="answerInput" class="input" type="text" placeholder="Type here…" disabled />
+    <div class="top-bar">
+      <button id="startBtn" class="btn">Start</button>
+      <div id="timer">10:00</div>
+      <div id="progress">0 / 46</div>
+    </div>
 
     <div id="status" class="status">Press Start to begin.</div>
 
-    <h2>Progress</h2>
-    <div id="list" class="list"></div>
-  </main>
+    <div id="list" class="list-container"></div>
+  </div>
 
+  <!-- Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
