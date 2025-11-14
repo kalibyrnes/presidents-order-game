@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Presidents Order Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Presidents — Put them in exact order</h1>
+    <p class="instructions">
+      Click the presidents in chronological order (first → last). Start with #1 (George Washington).
+    </p>
+
+    <div id="status" class="status">Ready — click Start to play.</div>
+
+    <div class="controls">
+      <button id="startBtn">Start</button>
+      <button id="shuffleBtn">Shuffle</button>
+      <button id="revealBtn">Reveal Answer</button>
+    </div>
+
+    <section id="board" class="board" aria-live="polite"></section>
+
+    <div id="progress" class="progress"></div>
+
+    <footer class="footer">
+      <small>Presidents list derived from public lists (Wikipedia, WhiteHouse timeline).</small>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
