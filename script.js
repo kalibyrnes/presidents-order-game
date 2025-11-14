@@ -42,14 +42,14 @@ const PRESIDENTS = [
   { name: "George H. W. Bush", terms: "1989–1993", answers: ["bush"] },
   { name: "Bill Clinton", terms: "1993–2001", answers: ["clinton"] },
   { name: "George W. Bush", terms: "2001–2009", answers: ["bush"] },
-  { name: "Barack Obama", terms: "2009–2017", answers: ["obama"] }
-  { name: "Donald Trump", terms: "2017–2021", answers: ["trump"] }
+  { name: "Barack Obama", terms: "2009–2017", answers: ["obama"] },
+  { name: "Donald Trump", terms: "2017–2021", answers: ["trump"] },
   { name: "Joe Biden", terms: "2021–2025", answers: ["biden"] },
   { name: "Donald Trump", terms: "2025–present", answers: ["trump"] }
 ];
 
-let timerInterval;
 let solved = 0;
+let timerInterval;
 
 const list = document.getElementById("list");
 const progress = document.getElementById("progress");
@@ -57,33 +57,54 @@ const status = document.getElementById("status");
 const timer = document.getElementById("timer");
 const startBtn = document.getElementById("startBtn");
 
+// Render input boxes
 function renderList() {
   list.innerHTML = "";
   PRESIDENTS.forEach((p, i) => {
-    list.innerHTML += `
-      <div class="row">
-        <span class="number">${i + 1}.</span>
-        <span class="terms">${p.terms}</span>
-        <input id="i${i}" class="answerBox" type="text" disabled />
-      </div>`;
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const num = document.createElement("span");
+    num.textContent = `${i+1}.`;
+    num.className = "number";
+
+    const terms = document.createElement("span");
+    terms.textContent = p.terms;
+    terms.className = "terms";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "answerBox";
+    input.id = `i${i}`;
+    input.disabled = true;
+
+    row.appendChild(num);
+    row.appendChild(terms);
+    row.appendChild(input);
+    list.appendChild(row);
   });
 }
 
+// Start Timer
 function startTimer() {
-  let time = 600;
+  let time = 600; // 10 minutes
+  timer.textContent = "10:00";
+
   timerInterval = setInterval(() => {
     time--;
     const m = Math.floor(time / 60);
     const s = time % 60;
-    timer.innerText = `${m}:${s.toString().padStart(2,"0")}`;
-    if(time === 0) {
+    timer.textContent = `${m}:${s.toString().padStart(2,"0")}`;
+
+    if (time <= 0) {
       clearInterval(timerInterval);
-      status.innerText = "⏳ Time’s up!";
-      document.querySelectorAll(".answerBox").forEach(b => b.disabled = true);
+      status.textContent = "Time's up!";
+      document.querySelectorAll(".answerBox").forEach(input => input.disabled = true);
     }
   }, 1000);
 }
 
+// Confetti celebration
 function celebrate() {
   const duration = 3000;
   const end = Date.now() + duration;
@@ -103,8 +124,63 @@ function celebrate() {
   })();
 }
 
+// Start Game
 function startGame() {
   solved = 0;
   renderList();
-  status.innerText = "Game started — type President #1";
-  progress.innerText = `0 / ${PRESIDENTS.length}`;
+  status.textContent = "Game started — type President #1";
+  progress.textContent = `0 / ${PRESIDENTS.length}`;
+  startTimer();
+
+  const first = document.getElementById("i0");
+  first.disabled = false;
+  first.focus();
+}
+
+// Handle input
+list.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+
+  const id = parseInt(e.target.id.substring(1));
+  const text = e.target.value.trim().toLowerCase();
+
+  if (PRESIDENTS[id].answers.includes(text)) {
+    e.target.value = PRESIDENTS[id].name;
+    e.target.classList.add("correct");
+    e.target.disabled = true;
+
+    solved++;
+    progress.textContent = `${solved} / ${PRESIDENTS.length}`;
+    status.textContent = "Correct";
+
+    if (solved === PRESIDENTS.length) {
+      clearInterval(timerInterval);
+      status.textContent = "You completed all presidents!";
+      celebrate();
+    } else {
+      const next = document.getElementById(`i${id + 1}`);
+      next.disabled = false;
+      next.focus();
+    }
+  } else {
+    e.target.classList.add("incorrect");
+    setTimeout(() => e.target.classList.remove("incorrect"), 500);
+  }
+});
+
+// Sparkles
+function createSparkles() {
+  setInterval(() => {
+    const sparkle = document.createElement("div");
+    sparkle.classList.add("sparkle");
+    sparkle.style.left = Math.random() * 100 + "vw";
+    sparkle.style.animationDuration = (Math.random() * 3 + 4) + "s";
+    document.body.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), 7000);
+  }, 250);
+}
+createSparkles();
+
+startBtn.addEventListener("click", startGame);
+
+
