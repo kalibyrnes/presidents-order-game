@@ -125,22 +125,49 @@ function createList() {
   });
 }
 
-function checkAnswer(e) {
-  const idx = parseInt(e.target.dataset.index);
-  const val = e.target.value.trim().toLowerCase();
-  if (PRESIDENTS[idx].answers.includes(val)) {
-    e.target.classList.add("correct");
-    e.target.disabled = true;
-    currentIndex++;
-    statusEl.textContent = `Score: ${currentIndex} / ${PRESIDENTS.length}`;
-    if (currentIndex === PRESIDENTS.length) {
-      winGame();
-    }
-  } else if (val.length > 0) {
-    e.target.classList.add("incorrect");
-    endGame();
-  }
+function createList() {
+  PRESIDENTS.forEach((p, idx) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `
+      <div>${idx+1}</div>
+      <div>${p.terms}</div>
+      <input type="text" class="answerBox" data-index="${idx}" placeholder="Name">
+    `;
+    listContainer.appendChild(row);
+  });
+
+  const inputs = document.querySelectorAll(".answerBox");
+  inputs.forEach(input => {
+    // Check while typing if fully correct
+    input.addEventListener("input", e => {
+      const idx = parseInt(e.target.dataset.index);
+      const val = e.target.value.trim().toLowerCase();
+      if (PRESIDENTS[idx].answers.includes(val)) {
+        e.target.classList.add("correct");
+        e.target.disabled = true;
+        currentIndex++;
+        statusEl.textContent = `Score: ${currentIndex} / ${PRESIDENTS.length}`;
+        if (currentIndex === PRESIDENTS.length) winGame();
+      } else {
+        e.target.classList.remove("correct");
+      }
+    });
+
+    // Check for mistakes only on Enter key
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        const idx = parseInt(e.target.dataset.index);
+        const val = e.target.value.trim().toLowerCase();
+        if (!PRESIDENTS[idx].answers.includes(val)) {
+          e.target.classList.add("incorrect");
+          endGame();
+        }
+      }
+    });
+  });
 }
+
 
 function startTimer() {
   timerEl.textContent = formatTime(timeLeft);
