@@ -112,7 +112,7 @@ function startGame() {
   gameOver = false;
 
   // UI
-  startBtn.textContent = "Pause"; // default becomes pause after start
+  startBtn.textContent = "aPause"; // default becomes pause after start
   status.textContent = "Game started — type the first president";
   progress.textContent = `0 / ${PRESIDENTS.length}`;
   renderList();
