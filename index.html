@@ -8,18 +8,19 @@
 </head>
 <body>
   <main class="container">
-    <h1>Type the U.S. Presidents in Order</h1>
-    <p>Type the presidents in chronological order. Last names or full names both accepted.</p>
+    <h1>U.S. Presidents – Type in Order</h1>
+    <p>Type last names or full names. You have 10 minutes.</p>
+
+    <div id="timer" class="timer">10:00</div>
+
+    <button id="startBtn">Start</button>
+
+    <input id="answerInput" class="input" type="text" placeholder="Type here…" disabled />
 
     <div id="status" class="status">Press Start to begin.</div>
 
-    <div class="controls">
-      <button id="startBtn">Start</button>
-    </div>
-
-    <input id="answerInput" class="input" type="text" placeholder="Type here..." disabled />
-
-    <div id="progress" class="progress">Progress: 0 / 47</div>
+    <h2>Progress</h2>
+    <div id="list" class="list"></div>
   </main>
 
   <script src="script.js"></script>
