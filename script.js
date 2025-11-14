@@ -4,9 +4,9 @@ const PRESIDENTS = [
   { name: "Thomas Jefferson", terms: "1801–1809", answers: ["jefferson"] },
   { name: "James Madison", terms: "1809–1817", answers: ["madison"] },
   { name: "James Monroe", terms: "1817–1825", answers: ["monroe"] },
-  { name: "John Quincy Adams", terms: "1825–1829", answers: ["john quincy adams", "quincy adams", "adams"] },
+  { name: "John Quincy Adams", terms: "1825–1829", answers: ["john quincy adams","quincy adams","adams"] },
   { name: "Andrew Jackson", terms: "1829–1837", answers: ["jackson"] },
-  { name: "Martin Van Buren", terms: "1837–1841", answers: ["van buren", "vanburen"] },
+  { name: "Martin Van Buren", terms: "1837–1841", answers: ["van buren","vanburen"] },
   { name: "William Henry Harrison", terms: "1841", answers: ["harrison"] },
   { name: "John Tyler", terms: "1841–1845", answers: ["tyler"] },
   { name: "James K. Polk", terms: "1845–1849", answers: ["polk"] },
@@ -42,18 +42,18 @@ const PRESIDENTS = [
   { name: "George H. W. Bush", terms: "1989–1993", answers: ["bush"] },
   { name: "Bill Clinton", terms: "1993–2001", answers: ["clinton"] },
   { name: "George W. Bush", terms: "2001–2009", answers: ["bush"] },
-  { name: "Barack Obama", terms: "2009–2017", answers: ["obama"] },
-  { name: "Donald Trump", terms: "2017–2021", answers: ["trump"] },
+  { name: "Barack Obama", terms: "2009–2017", answers: ["obama"] }
+  { name: "Donald Trump", terms: "2017–2021", answers: ["trump"] }
   { name: "Joe Biden", terms: "2021–2025", answers: ["biden"] },
-  { name: "Donald Trump", terms: "2015–present", answers: ["trump"] },
+  { name: "Donald Trump", terms: "2025–present", answers: ["trump"] }
 ];
 
-let index = 0;
 let timerInterval;
+let solved = 0;
 
-const input = document.getElementById("answerInput");
-const status = document.getElementById("status");
 const list = document.getElementById("list");
+const progress = document.getElementById("progress");
+const status = document.getElementById("status");
 const timer = document.getElementById("timer");
 const startBtn = document.getElementById("startBtn");
 
@@ -62,7 +62,9 @@ function renderList() {
   PRESIDENTS.forEach((p, i) => {
     list.innerHTML += `
       <div class="row">
-        <strong>${i+1}.</strong> ${p.terms} | <span id="p${i}">__________</span>
+        <span class="number">${i + 1}.</span>
+        <span class="terms">${p.terms}</span>
+        <input id="i${i}" class="answerBox" type="text" disabled />
       </div>`;
   });
 }
@@ -74,42 +76,35 @@ function startTimer() {
     const m = Math.floor(time / 60);
     const s = time % 60;
     timer.innerText = `${m}:${s.toString().padStart(2,"0")}`;
-    if (time === 0) {
+    if(time === 0) {
       clearInterval(timerInterval);
-      input.disabled = true;
-      status.innerHTML = "⏳ Time's up!";
+      status.innerText = "⏳ Time’s up!";
+      document.querySelectorAll(".answerBox").forEach(b => b.disabled = true);
     }
   }, 1000);
 }
 
-function startGame() {
-  index = 0;
-  renderList();
-  input.disabled = false;
-  input.value = "";
-  input.focus();
-  status.innerText = `Type President #1`;
-  startTimer();
+function celebrate() {
+  const duration = 3000;
+  const end = Date.now() + duration;
+
+  (function frame() {
+    confetti({
+      particleCount: 8,
+      startVelocity: 30,
+      spread: 360,
+      ticks: 60,
+      origin: {
+        x: Math.random(),
+        y: Math.random() - 0.2
+      }
+    });
+    if (Date.now() < end) requestAnimationFrame(frame);
+  })();
 }
 
-startBtn.addEventListener("click", startGame);
-
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    const ans = input.value.trim().toLowerCase();
-    if (PRESIDENTS[index].answers.includes(ans)) {
-      document.getElementById(`p${index}`).innerText = PRESIDENTS[index].name;
-      index++;
-      input.value = "";
-      if (index === PRESIDENTS.length) {
-        status.innerText = "🎉 You finished!";
-        clearInterval(timerInterval);
-        input.disabled = true;
-      } else {
-        status.innerText = `Correct — now type President #${index + 1}`;
-      }
-    } else {
-      status.innerText = `❌ Try again`;
-    }
-  }
-});
+function startGame() {
+  solved = 0;
+  renderList();
+  status.innerText = "Game started — type President #1";
+  progress.innerText = `0 / ${PRESIDENTS.length}`;
