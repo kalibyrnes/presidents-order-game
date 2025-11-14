@@ -44,7 +44,8 @@ const PRESIDENTS = [
   ["george w. bush", "bush"],
   ["barack obama", "obama"],
   ["donald trump", "trump"],
-  ["joe biden", "biden"]
+  ["joe biden", "biden"],
+  ["donald trump", "trump"]
 ];
 
 let index = 0;
