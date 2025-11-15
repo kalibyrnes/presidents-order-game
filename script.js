@@ -1,4 +1,6 @@
-// Presidents list
+// -------------------------
+// PRESIDENTS DATA
+// -------------------------
 const PRESIDENTS = [
   { name: "George Washington", terms: "1789–1797", answers: ["washington"] },
   { name: "John Adams", terms: "1797–1801", answers: ["adams"] },
@@ -49,16 +51,23 @@ const PRESIDENTS = [
   { name: "Donald Trump", terms: "2025–present", answers: ["trump"] }
 ];
 
+// -------------------------
+// ELEMENTS
+// -------------------------
 const startBtn = document.getElementById("startBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const listContainer = document.getElementById("listContainer");
 const timerEl = document.getElementById("timer");
 const statusEl = document.getElementById("status");
+const effectsEl = document.getElementById("effects");
 
+// -------------------------
+// STATE
+// -------------------------
 let gameStarted = false;
 let paused = false;
 let timer;
-let timeLeft = 600; // 10 minutes in seconds
+let timeLeft = 600; // 10 min
 let currentIndex = 0;
 
 // -------------------------
@@ -107,6 +116,9 @@ function restartGame() {
   startGame();
 }
 
+// -------------------------
+// CREATE PRESIDENT LIST
+// -------------------------
 function createList() {
   PRESIDENTS.forEach((p, idx) => {
     const row = document.createElement("div");
@@ -121,40 +133,28 @@ function createList() {
 
   const inputs = document.querySelectorAll(".answerBox");
   inputs.forEach(input => {
-    input.addEventListener("input", checkAnswer);
-  });
-}
-
-function createList() {
-  PRESIDENTS.forEach((p, idx) => {
-    const row = document.createElement("div");
-    row.className = "row";
-    row.innerHTML = `
-      <div>${idx+1}</div>
-      <div>${p.terms}</div>
-      <input type="text" class="answerBox" data-index="${idx}" placeholder="Name">
-    `;
-    listContainer.appendChild(row);
-  });
-
-  const inputs = document.querySelectorAll(".answerBox");
-  inputs.forEach(input => {
-    // Check while typing if fully correct
+    // Auto mark correct while typing
     input.addEventListener("input", e => {
       const idx = parseInt(e.target.dataset.index);
       const val = e.target.value.trim().toLowerCase();
+
       if (PRESIDENTS[idx].answers.includes(val)) {
         e.target.classList.add("correct");
         e.target.disabled = true;
         currentIndex++;
         statusEl.textContent = `Score: ${currentIndex} / ${PRESIDENTS.length}`;
+
+        // Auto focus next input
+        const nextInput = document.querySelector(`.answerBox[data-index='${idx+1}']`);
+        if (nextInput) nextInput.focus();
+
         if (currentIndex === PRESIDENTS.length) winGame();
       } else {
         e.target.classList.remove("correct");
       }
     });
 
-    // Check for mistakes only on Enter key
+    // Check mistakes only on Enter
     input.addEventListener("keydown", e => {
       if (e.key === "Enter") {
         const idx = parseInt(e.target.dataset.index);
@@ -168,7 +168,9 @@ function createList() {
   });
 }
 
-
+// -------------------------
+// TIMER
+// -------------------------
 function startTimer() {
   timerEl.textContent = formatTime(timeLeft);
   timer = setInterval(() => {
@@ -224,7 +226,7 @@ function createConfetti() {
     c.className = "confetti";
     c.style.left = Math.random()*100 + "vw";
     c.style.backgroundColor = `hsl(${Math.random()*360}, 80%, 70%)`;
-    document.getElementById("effects").appendChild(c);
+    effectsEl.appendChild(c);
     setTimeout(()=>c.remove(), 3000);
   }
 }
