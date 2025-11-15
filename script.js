@@ -249,41 +249,65 @@ function formatTime(sec) {
 // -------------------------
 // END GAME WITH REVEAL + POPUP
 // -------------------------
-function endGameWithReveal(wrongIdx) {
-  // stop timer and disable inputs
+// -------------------------
+// SHOW MODAL INSTEAD OF ALERT()
+// -------------------------
+function endGameWithReveal(wrongIdx, typedValue = "") {
   if (timer) clearInterval(timer);
   disableInputs();
   paused = false;
 
-  // hide pause button and reset start button text to "Start" for next run
   pauseBtn.style.display = "none";
   startBtn.textContent = "Start";
   gameStarted = false;
 
-  // compute score + percentage + time left
   const score = currentIndex;
   const total = PRESIDENTS.length;
   const pct = Math.round((score / total) * 100);
   const timeStr = formatTime(timeLeft);
 
-  // show popup (simple alert) with results
-  alert(`Game over!\nScore: ${score} / ${total}\nTime left: ${timeStr}\nPercentage: ${pct}%`);
+  // Determine other presidents whose names matched the wrong input
+  const matches = matchingIndicesFor(typedValue.toLowerCase());
+  let matchText = "";
 
-  // reveal correct name at the wrong position if provided
+  if (matches.length > 0) {
+    const names = matches.map(i => PRESIDENTS[i].name).join(", ");
+    matchText = `Your answer matched: <br><strong>${names}</strong>`;
+  }
+
+  // Populate modal text
+  document.getElementById("modalTitle").textContent = "Game Over!";
+  document.getElementById("modalMessage").innerHTML =
+    `Score: <strong>${score}</strong> / ${total}<br>` +
+    `Time Left: <strong>${timeStr}</strong><br>` +
+    `Percentage: <strong>${pct}%</strong>`;
+
+  document.getElementById("modalMatching").innerHTML = matchText;
+
+  // Show modal
+  document.getElementById("gameOverModal").style.display = "flex";
+
+  // Reveal correct answer at wrong position
   if (typeof wrongIdx === "number") {
     const wrongInput = document.querySelector(`.answerBox[data-index='${wrongIdx}']`);
     if (wrongInput) {
       wrongInput.value = PRESIDENTS[wrongIdx].name;
-      wrongInput.classList.remove("incorrect");
       wrongInput.classList.add("correct");
       wrongInput.disabled = true;
     }
   }
 
-  // reset timer display to 10:00 for next attempt
+  // Reset timer for next game instance
   timeLeft = 600;
   timerEl.textContent = formatTime(timeLeft);
 }
+
+// Play Again Button Event
+document.getElementById("playAgainBtn").addEventListener("click", () => {
+  document.getElementById("gameOverModal").style.display = "none";
+  restartGame();
+});
+
 
 // -------------------------
 // WIN
