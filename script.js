@@ -107,7 +107,6 @@ function startGame() {
   timeLeft = 600;
   statusEl.textContent = `Score: 0 / ${PRESIDENTS.length}`;
   createList();
-  enableInputs();
   startTimer();
 }
 
@@ -133,28 +132,32 @@ function createList() {
 
   const inputs = document.querySelectorAll(".answerBox");
   inputs.forEach(input => {
-    // Auto mark correct while typing
+
+    // Auto-complete & advance logic
     input.addEventListener("input", e => {
       const idx = parseInt(e.target.dataset.index);
       const val = e.target.value.trim().toLowerCase();
+      const pres = PRESIDENTS[idx];
 
-      if (PRESIDENTS[idx].answers.includes(val)) {
+      if (pres.answers.includes(val)) {
+        // Auto-fill full correct name
+        e.target.value = pres.name;
+
         e.target.classList.add("correct");
         e.target.disabled = true;
+
         currentIndex++;
         statusEl.textContent = `Score: ${currentIndex} / ${PRESIDENTS.length}`;
 
-        // Auto focus next input
+        // Move to next
         const nextInput = document.querySelector(`.answerBox[data-index='${idx+1}']`);
         if (nextInput) nextInput.focus();
 
         if (currentIndex === PRESIDENTS.length) winGame();
-      } else {
-        e.target.classList.remove("correct");
       }
     });
 
-    // Check mistakes only on Enter
+    // Check wrong on Enter only
     input.addEventListener("keydown", e => {
       if (e.key === "Enter") {
         const idx = parseInt(e.target.dataset.index);
@@ -165,6 +168,7 @@ function createList() {
         }
       }
     });
+
   });
 }
 
@@ -211,23 +215,22 @@ function endGame() {
 }
 
 function winGame() {
-  clearInterval(timer);
   disableInputs();
+  clearInterval(timer);
   statusEl.textContent = `You won! All correct!`;
   createConfetti();
 }
 
 // -------------------------
-// CONFETTI EFFECT
+// CONFETTI
 // -------------------------
 function createConfetti() {
-  for (let i=0;i<100;i++) {
+  for (let i = 0; i < 100; i++) {
     const c = document.createElement("div");
     c.className = "confetti";
-    c.style.left = Math.random()*100 + "vw";
-    c.style.backgroundColor = `hsl(${Math.random()*360}, 80%, 70%)`;
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.backgroundColor = `hsl(${Math.random() * 360}, 80%, 70%)`;
     effectsEl.appendChild(c);
-    setTimeout(()=>c.remove(), 3000);
+    setTimeout(() => c.remove(), 2500);
   }
 }
-
