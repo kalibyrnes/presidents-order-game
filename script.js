@@ -66,8 +66,8 @@ const effectsEl = document.getElementById("effects");
 // -------------------------
 let gameStarted = false;
 let paused = false;
-let timer;
-let timeLeft = 600; // 10 minutes
+let timer = null;
+let timeLeft = 600; // seconds
 let currentIndex = 0;
 
 // -------------------------
@@ -117,6 +117,9 @@ function restartGame() {
   startGame();
 }
 
+// -------------------------
+// CREATE PRESIDENT LIST
+// -------------------------
 function createList() {
   PRESIDENTS.forEach((p, idx) => {
     const row = document.createElement("div");
@@ -133,11 +136,12 @@ function createList() {
 
   inputs.forEach(input => {
     input.addEventListener("input", e => {
-      const idx = parseInt(e.target.dataset.index);
+      const idx = parseInt(e.target.dataset.index, 10);
       const val = e.target.value.trim().toLowerCase();
 
+      // auto-complete if exact match to any allowed answer
       if (PRESIDENTS[idx].answers.includes(val)) {
-        e.target.value = PRESIDENTS[idx].name; // auto-correct full name
+        e.target.value = PRESIDENTS[idx].name; // auto-correct to full name
         e.target.classList.add("correct");
         e.target.disabled = true;
 
@@ -148,16 +152,21 @@ function createList() {
         if (nextInput) nextInput.focus();
 
         if (currentIndex === PRESIDENTS.length) winGame();
+      } else {
+        e.target.classList.remove("correct");
       }
     });
 
+    // only treat a wrong answer when the user presses Enter
     input.addEventListener("keydown", e => {
       if (e.key === "Enter") {
-        const idx = parseInt(e.target.dataset.index);
+        const idx = parseInt(e.target.dataset.index, 10);
         const val = e.target.value.trim().toLowerCase();
+
         if (!PRESIDENTS[idx].answers.includes(val)) {
+          // mark red, then end game and show popup
           e.target.classList.add("incorrect");
-          endGame();
+          endGameWithReveal(idx);
         }
       }
     });
@@ -168,13 +177,17 @@ function createList() {
 // TIMER
 // -------------------------
 function startTimer() {
+  // ensure no duplicate intervals
+  if (timer) clearInterval(timer);
   timerEl.textContent = formatTime(timeLeft);
   timer = setInterval(() => {
-    timeLeft--;
-    timerEl.textContent = formatTime(timeLeft);
-    if (timeLeft <= 0) {
-      clearInterval(timer);
-      endGame();
+    if (!paused) {
+      timeLeft--;
+      timerEl.textContent = formatTime(timeLeft);
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        endGameWithReveal(); // no index to reveal
+      }
     }
   }, 1000);
 }
@@ -182,26 +195,60 @@ function startTimer() {
 function formatTime(sec) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
-  return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
 // -------------------------
-// END GAME
+// END GAME WITH REVEAL + POPUP
 // -------------------------
-function endGame() {
-  disableInputs();
+function endGameWithReveal(wrongIdx) {
+  // stop timer and disable inputs
   clearInterval(timer);
+  disableInputs();
+  paused = false;
 
+  // hide pause button and reset start button text to "Start" for next run
   pauseBtn.style.display = "none";
+  startBtn.textContent = "Start";
+  gameStarted = false;
 
-  statusEl.textContent = `Game Over — Final Score: ${currentIndex} / ${PRESIDENTS.length} — Time left: ${formatTime(timeLeft)}`;
+  // compute score + percentage + time left
+  const score = currentIndex;
+  const total = PRESIDENTS.length;
+  const pct = Math.round((score / total) * 100);
+  const timeStr = formatTime(timeLeft);
+
+  // show popup with details (use built-in alert)
+  // You can replace with a custom modal later; this is simple & robust.
+  alert(`Game over!\nScore: ${score} / ${total}\nTime left: ${timeStr}\nPercentage: ${pct}%`);
+
+  // If a wrong index was provided, replace that input with the correct full name
+  if (typeof wrongIdx === "number") {
+    const wrongInput = document.querySelector(`.answerBox[data-index='${wrongIdx}']`);
+    if (wrongInput) {
+      // replace wrong value with the correct president name and style as correct
+      wrongInput.value = PRESIDENTS[wrongIdx].name;
+      wrongInput.classList.remove("incorrect");
+      wrongInput.classList.add("correct");
+      wrongInput.disabled = true;
+    }
+  }
+
+  // reset timer display to 10:00 for the next attempt
+  timeLeft = 600;
+  timerEl.textContent = formatTime(timeLeft);
 }
 
+// -------------------------
+// END / WIN
+// -------------------------
 function winGame() {
   clearInterval(timer);
   disableInputs();
-  statusEl.textContent = `You Won! All Correct — Time Left: ${formatTime(timeLeft)}`;
   pauseBtn.style.display = "none";
+  startBtn.textContent = "Start";
+  gameStarted = false;
+  statusEl.textContent = `You Won! All Correct — Time Left: ${formatTime(timeLeft)}`;
   createConfetti();
 }
 
@@ -224,8 +271,8 @@ function createConfetti() {
     const c = document.createElement("div");
     c.className = "confetti";
     c.style.left = Math.random() * 100 + "vw";
-    c.style.backgroundColor = `hsl(${Math.random()*360}, 80%, 70%)`;
+    c.style.backgroundColor = `hsl(${Math.random() * 360}, 80%, 70%)`;
     effectsEl.appendChild(c);
-    setTimeout(()=>c.remove(), 3000);
+    setTimeout(() => c.remove(), 3000);
   }
 }
