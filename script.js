@@ -71,6 +71,21 @@ let timeLeft = 600; // seconds
 let currentIndex = 0;
 
 // -------------------------
+// HELPERS: find all matching president indices for a user input (case-insensitive)
+// -------------------------
+function matchingIndicesFor(val) {
+  if (!val) return [];
+  const norm = val.trim().toLowerCase();
+  const matches = [];
+  PRESIDENTS.forEach((p, i) => {
+    if (p.answers.some(a => a.toLowerCase() === norm)) matches.push(i);
+    // also allow matching full official name typed in (e.g., "barack obama")
+    if (p.name.toLowerCase() === norm && !matches.includes(i)) matches.push(i);
+  });
+  return matches;
+}
+
+// -------------------------
 // BUTTONS
 // -------------------------
 startBtn.addEventListener("click", () => {
@@ -114,7 +129,14 @@ function startGame() {
 
 function restartGame() {
   clearInterval(timer);
-  startGame();
+  // Clear previous list and state then start fresh
+  listContainer.innerHTML = "";
+  currentIndex = 0;
+  timeLeft = 600;
+  statusEl.textContent = `Score: 0 / ${PRESIDENTS.length}`;
+  createList();
+  enableInputs();
+  startTimer();
 }
 
 // -------------------------
@@ -135,39 +157,65 @@ function createList() {
   const inputs = document.querySelectorAll(".answerBox");
 
   inputs.forEach(input => {
+    // input handler: auto-complete correct, or immediate-fail if user typed a full name that matches a different president
     input.addEventListener("input", e => {
       const idx = parseInt(e.target.dataset.index, 10);
-      const val = e.target.value.trim().toLowerCase();
+      const val = e.target.value.trim();
+      const norm = val.toLowerCase();
 
-      // auto-complete if exact match to any allowed answer
-      if (PRESIDENTS[idx].answers.includes(val)) {
-        e.target.value = PRESIDENTS[idx].name; // auto-correct to full name
-        e.target.classList.add("correct");
-        e.target.disabled = true;
-
-        currentIndex++;
-        statusEl.textContent = `Score: ${currentIndex} / ${PRESIDENTS.length}`;
-
-        const nextInput = document.querySelector(`.answerBox[data-index='${idx + 1}']`);
-        if (nextInput) nextInput.focus();
-
-        if (currentIndex === PRESIDENTS.length) winGame();
-      } else {
+      if (norm.length === 0) {
         e.target.classList.remove("correct");
+        return;
       }
+
+      // find all president indices that match this typed value exactly (aliases or full name)
+      const matched = matchingIndicesFor(norm);
+
+      // If it matches at least one president
+      if (matched.length > 0) {
+        // If this typed value matches the president expected at this index (i.e., idx is in matched) -> correct
+        if (matched.includes(idx)) {
+          // auto-fill official name, mark correct, disable, advance
+          e.target.value = PRESIDENTS[idx].name;
+          e.target.classList.add("correct");
+          e.target.disabled = true;
+
+          currentIndex++;
+          statusEl.textContent = `Score: ${currentIndex} / ${PRESIDENTS.length}`;
+
+          // focus next input
+          const nextInput = document.querySelector(`.answerBox[data-index='${idx + 1}']`);
+          if (nextInput) nextInput.focus();
+
+          if (currentIndex === PRESIDENTS.length) winGame();
+          return;
+        } else {
+          // It matches some other president(s) but NOT the expected one at this index -> immediate wrong
+          // Mark incorrect visually then end game, revealing correct for this spot afterwards
+          e.target.classList.add("incorrect");
+          endGameWithReveal(idx);
+          return;
+        }
+      }
+
+      // If no exact matches, just remove any correct styling (partial typing)
+      e.target.classList.remove("correct");
+      e.target.classList.remove("incorrect");
     });
 
-    // only treat a wrong answer when the user presses Enter
+    // Also keep the Enter behaviour: pressing Enter with wrong value triggers end
     input.addEventListener("keydown", e => {
       if (e.key === "Enter") {
         const idx = parseInt(e.target.dataset.index, 10);
         const val = e.target.value.trim().toLowerCase();
-
-        if (!PRESIDENTS[idx].answers.includes(val)) {
-          // mark red, then end game and show popup
-          e.target.classList.add("incorrect");
-          endGameWithReveal(idx);
+        // If typed exact matches expected, do nothing (already handled by input)
+        if (matchingIndicesFor(val).includes(idx)) {
+          // nothing needed (would already be handled)
+          return;
         }
+        // otherwise it's wrong
+        e.target.classList.add("incorrect");
+        endGameWithReveal(idx);
       }
     });
   });
@@ -177,7 +225,7 @@ function createList() {
 // TIMER
 // -------------------------
 function startTimer() {
-  // ensure no duplicate intervals
+  // clear previous interval (defensive)
   if (timer) clearInterval(timer);
   timerEl.textContent = formatTime(timeLeft);
   timer = setInterval(() => {
@@ -186,7 +234,7 @@ function startTimer() {
       timerEl.textContent = formatTime(timeLeft);
       if (timeLeft <= 0) {
         clearInterval(timer);
-        endGameWithReveal(); // no index to reveal
+        endGameWithReveal(); // no wrong index
       }
     }
   }, 1000);
@@ -203,7 +251,7 @@ function formatTime(sec) {
 // -------------------------
 function endGameWithReveal(wrongIdx) {
   // stop timer and disable inputs
-  clearInterval(timer);
+  if (timer) clearInterval(timer);
   disableInputs();
   paused = false;
 
@@ -218,15 +266,13 @@ function endGameWithReveal(wrongIdx) {
   const pct = Math.round((score / total) * 100);
   const timeStr = formatTime(timeLeft);
 
-  // show popup with details (use built-in alert)
-  // You can replace with a custom modal later; this is simple & robust.
+  // show popup (simple alert) with results
   alert(`Game over!\nScore: ${score} / ${total}\nTime left: ${timeStr}\nPercentage: ${pct}%`);
 
-  // If a wrong index was provided, replace that input with the correct full name
+  // reveal correct name at the wrong position if provided
   if (typeof wrongIdx === "number") {
     const wrongInput = document.querySelector(`.answerBox[data-index='${wrongIdx}']`);
     if (wrongInput) {
-      // replace wrong value with the correct president name and style as correct
       wrongInput.value = PRESIDENTS[wrongIdx].name;
       wrongInput.classList.remove("incorrect");
       wrongInput.classList.add("correct");
@@ -234,16 +280,16 @@ function endGameWithReveal(wrongIdx) {
     }
   }
 
-  // reset timer display to 10:00 for the next attempt
+  // reset timer display to 10:00 for next attempt
   timeLeft = 600;
   timerEl.textContent = formatTime(timeLeft);
 }
 
 // -------------------------
-// END / WIN
+// WIN
 // -------------------------
 function winGame() {
-  clearInterval(timer);
+  if (timer) clearInterval(timer);
   disableInputs();
   pauseBtn.style.display = "none";
   startBtn.textContent = "Start";
