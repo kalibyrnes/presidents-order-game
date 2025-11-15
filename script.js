@@ -67,11 +67,11 @@ const effectsEl = document.getElementById("effects");
 let gameStarted = false;
 let paused = false;
 let timer;
-let timeLeft = 600; // 10 min
+let timeLeft = 600; // 10 minutes
 let currentIndex = 0;
 
 // -------------------------
-// BUTTON EVENTS
+// BUTTONS
 // -------------------------
 startBtn.addEventListener("click", () => {
   if (!gameStarted) {
@@ -106,7 +106,9 @@ function startGame() {
   currentIndex = 0;
   timeLeft = 600;
   statusEl.textContent = `Score: 0 / ${PRESIDENTS.length}`;
+  pauseBtn.style.display = "inline-block";
   createList();
+  enableInputs();
   startTimer();
 }
 
@@ -115,15 +117,12 @@ function restartGame() {
   startGame();
 }
 
-// -------------------------
-// CREATE PRESIDENT LIST
-// -------------------------
 function createList() {
   PRESIDENTS.forEach((p, idx) => {
     const row = document.createElement("div");
     row.className = "row";
     row.innerHTML = `
-      <div>${idx+1}</div>
+      <div>${idx + 1}</div>
       <div>${p.terms}</div>
       <input type="text" class="answerBox" data-index="${idx}" placeholder="Name">
     `;
@@ -131,33 +130,27 @@ function createList() {
   });
 
   const inputs = document.querySelectorAll(".answerBox");
-  inputs.forEach(input => {
 
-    // Auto-complete & advance logic
+  inputs.forEach(input => {
     input.addEventListener("input", e => {
       const idx = parseInt(e.target.dataset.index);
       const val = e.target.value.trim().toLowerCase();
-      const pres = PRESIDENTS[idx];
 
-      if (pres.answers.includes(val)) {
-        // Auto-fill full correct name
-        e.target.value = pres.name;
-
+      if (PRESIDENTS[idx].answers.includes(val)) {
+        e.target.value = PRESIDENTS[idx].name; // auto-correct full name
         e.target.classList.add("correct");
         e.target.disabled = true;
 
         currentIndex++;
         statusEl.textContent = `Score: ${currentIndex} / ${PRESIDENTS.length}`;
 
-        // Move to next
-        const nextInput = document.querySelector(`.answerBox[data-index='${idx+1}']`);
+        const nextInput = document.querySelector(`.answerBox[data-index='${idx + 1}']`);
         if (nextInput) nextInput.focus();
 
         if (currentIndex === PRESIDENTS.length) winGame();
       }
     });
 
-    // Check wrong on Enter only
     input.addEventListener("keydown", e => {
       if (e.key === "Enter") {
         const idx = parseInt(e.target.dataset.index);
@@ -168,7 +161,6 @@ function createList() {
         }
       }
     });
-
   });
 }
 
@@ -178,13 +170,11 @@ function createList() {
 function startTimer() {
   timerEl.textContent = formatTime(timeLeft);
   timer = setInterval(() => {
-    if (!paused) {
-      timeLeft--;
-      timerEl.textContent = formatTime(timeLeft);
-      if (timeLeft <= 0) {
-        clearInterval(timer);
-        endGame();
-      }
+    timeLeft--;
+    timerEl.textContent = formatTime(timeLeft);
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      endGame();
     }
   }, 1000);
 }
@@ -195,6 +185,27 @@ function formatTime(sec) {
   return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
 }
 
+// -------------------------
+// END GAME
+// -------------------------
+function endGame() {
+  disableInputs();
+  clearInterval(timer);
+
+  pauseBtn.style.display = "none";
+
+  statusEl.textContent = `Game Over — Final Score: ${currentIndex} / ${PRESIDENTS.length} — Time left: ${formatTime(timeLeft)}`;
+}
+
+function winGame() {
+  clearInterval(timer);
+  disableInputs();
+  statusEl.textContent = `You Won! All Correct — Time Left: ${formatTime(timeLeft)}`;
+  pauseBtn.style.display = "none";
+  createConfetti();
+}
+
+// -------------------------
 function disableInputs() {
   document.querySelectorAll(".answerBox").forEach(input => input.disabled = true);
 }
@@ -206,31 +217,15 @@ function enableInputs() {
 }
 
 // -------------------------
-// END GAME
-// -------------------------
-function endGame() {
-  disableInputs();
-  clearInterval(timer);
-  alert("Game over! You made a mistake.");
-}
-
-function winGame() {
-  disableInputs();
-  clearInterval(timer);
-  statusEl.textContent = `You won! All correct!`;
-  createConfetti();
-}
-
-// -------------------------
-// CONFETTI
+// CONFETTI EFFECT
 // -------------------------
 function createConfetti() {
   for (let i = 0; i < 100; i++) {
     const c = document.createElement("div");
     c.className = "confetti";
     c.style.left = Math.random() * 100 + "vw";
-    c.style.backgroundColor = `hsl(${Math.random() * 360}, 80%, 70%)`;
+    c.style.backgroundColor = `hsl(${Math.random()*360}, 80%, 70%)`;
     effectsEl.appendChild(c);
-    setTimeout(() => c.remove(), 2500);
+    setTimeout(()=>c.remove(), 3000);
   }
 }
